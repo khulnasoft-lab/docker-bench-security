@@ -39,17 +39,19 @@ usage () {
 
   -h           optional  Print this help message
   -l PATH      optional  Log output in PATH
+  -o FORMAT    optional  Output format. Options: JSON
 EOF
 }
 
 # Get the flags
 # If you add an option here, please
 # remember to update usage() above.
-while getopts hl: args
+while getopts hlo: args
 do
   case $args in
   h) usage; exit 0 ;;
   l) logger="$OPTARG" ;;
+  o) output="$OPTARG" ;;
   *) usage; exit 1 ;;
   esac
 done

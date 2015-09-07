@@ -1,273 +1,282 @@
 #!/bin/sh
 
 logit ""
-info "1 - Host Configuration"
+section_num="1"
+section_desc="Host Configuration"
+section_start "$section_num" "$section_desc"
 
 # 1.1
-check_1_1="1.1  - Create a separate partition for containers"
+check_num="1.1"
+check_desc="Create a separate partition for containers"
 grep /var/lib/docker /etc/fstab >/dev/null 2>&1
 if [ $? -eq 0 ]; then
-  pass "$check_1_1"
+  pass "$check_num" "$check_desc"
 else
-  warn "$check_1_1"
+  warn "$check_num" "$check_desc"
 fi
 
 # 1.2
-check_1_2="1.2  - Use an updated Linux Kernel"
+check_num="1.2"
+check_desc="Use an updated Linux Kernel"
 kernel_version=$(uname -r | cut -d "-" -f 1)
 do_version_check 3.10 "$kernel_version"
 if [ $? -eq 11 ]; then
-  warn "$check_1_2"
+  warn "$check_num" "$check_desc"
 else
-  pass "$check_1_2"
+  pass "$check_num" "$check_desc"
 fi
 
 # 1.5
-check_1_5="1.5  - Remove all non-essential services from the host - Network"
+check_num="1.5"
+check_desc="Remove all non-essential services from the host - Network"
 # Check for listening network services.
 listening_services=$(netstat -na | grep -v tcp6 | grep -v unix | grep -c LISTEN)
 if [ "$listening_services" -eq 0 ]; then
-  warn "1.5  - Failed to get listening services for check: $check_1_5"
+  warn "$check_num" "$check_desc" "Failed to get listening services for check"
 else
   if [ "$listening_services" -gt 5 ]; then
-    warn "$check_1_5"
-    warn "     * Host listening on: $listening_services ports"
+    warn "$check_num" "$check_desc" "Host listening on: $listening_services ports"
   else
-    pass "$check_1_5"
+    pass "$check_num" "$check_desc"
   fi
 fi
 
 # 1.6
-check_1_6="1.6  - Keep Docker up to date"
+check_num="1.6"
+check_desc="Keep Docker up to date"
 docker_version=$(docker version | grep -i -A1 '^server' | grep -i 'version:' \
   | awk '{print $NF; exit}' | tr -d '[:alpha:]-,')
 docker_current_version="1.8.0"
 do_version_check "$docker_current_version" "$docker_version"
 if [ $? -eq 11 ]; then
-  warn "$check_1_6"
-  warn "      * Using $docker_version, when $docker_current_version is current."
+  warn "$check_num" "$check_desc" "Using $docker_version, when $docker_current_version is current."
 else
-  pass "$check_1_6"
+  pass "$check_num" "$check_desc"
 fi
 
 # 1.7
-check_1_7="1.7  - Only allow trusted users to control Docker daemon"
+check_num="1.7"
+check_desc="Only allow trusted users to control Docker daemon"
 docker_users=$(grep docker /etc/group)
-info "$check_1_7"
 for u in $docker_users; do
-  info "     * $u"
+  user_list=$user_list $u
 done
+info "$check_num" "$check_desc" "$user_list"
 
 # 1.8
-check_1_8="1.8  - Audit docker daemon"
+check_num="1.8"
+check_desc="Audit docker daemon"
 command -v auditctl >/dev/null 2>&1
 if [ $? -eq 0 ]; then
   auditctl -l | grep /usr/bin/docker >/dev/null 2>&1
   if [ $? -eq 0 ]; then
-    pass "$check_1_8"
+    pass "$check_num" "$check_desc"
   else
-    warn "$check_1_8"
+    warn "$check_num" "$check_desc"
   fi
 else
-  warn "1.8  - Failed to inspect: auditctl command not found."
+  warn "$check_num" "$check_desc" "Failed to inspect: auditctl command not found."
 fi
 
 # 1.9
-check_1_9="1.9  - Audit Docker files and directories - /var/lib/docker"
+check_num="1.9"
+check_desc="Audit Docker files and directories - /var/lib/docker"
 directory="/var/lib/docker"
 if [ -d "$directory" ]; then
   command -v auditctl >/dev/null 2>&1
   if [ $? -eq 0 ]; then
     auditctl -l | grep $directory >/dev/null 2>&1
     if [ $? -eq 0 ]; then
-      pass "$check_1_9"
+      pass "$check_num" "$check_desc"
     else
-      warn "$check_1_9"
+      warn "$check_num" "$check_desc"
     fi
   else
-    warn "1.9  - Failed to inspect: auditctl command not found."
+    warn "$check_num" "$check_desc" "Failed to inspect: auditctl command not found."
   fi
 else
-  info "$check_1_9"
-  info "     * Directory not found"
+  info "$check_num" "$check_desc" "Directory not found"
 fi
 
 # 1.10
-check_1_10="1.10 - Audit Docker files and directories - /etc/docker"
+check_num="1.10"
+check_desc="Audit Docker files and directories - /etc/docker"
 directory="/etc/docker"
 if [ -d "$directory" ]; then
   command -v auditctl >/dev/null 2>&1
   if [ $? -eq 0 ]; then
     auditctl -l | grep $directory >/dev/null 2>&1
     if [ $? -eq 0 ]; then
-      pass "$check_1_10"
+      pass "$check_num" "$check_desc"
     else
-      warn "$check_1_10"
+      warn "$check_num" "$check_desc"
     fi
   else
-    warn "1.10 - Failed to inspect: auditctl command not found."
+    warn "$check_num" "$check_desc" "Failed to inspect: auditctl command not found."
   fi
 else
-  info "$check_1_10"
-  info "     * Directory not found"
+  info "$check_num" "$check_desc" "Directory not found"
 fi
 
 # 1.11
-check_1_11="1.11 - Audit Docker files and directories - docker-registry.service"
+check_num="1.11"
+check_desc="Audit Docker files and directories - docker-registry.service"
 file="/usr/lib/systemd/system/docker-registry.service"
 if [ -f "$file" ]; then
   command -v auditctl >/dev/null 2>&1
   if [ $? -eq 0 ]; then
     auditctl -l | grep $file >/dev/null 2>&1
     if [ $? -eq 0 ]; then
-      pass "$check_1_11"
+      pass "$check_num" "$check_desc"
     else
-      warn "$check_1_11"
+      warn "$check_num" "$check_desc"
     fi
   else
-    warn "1.11 - Failed to inspect: auditctl command not found."
+    warn "$check_num" "$check_desc" "Failed to inspect: auditctl command not found."
   fi
 else
-  info "$check_1_11"
-  info "     * File not found"
+  info "$check_num" "$check_desc" "File not found"
 fi
 
 # 1.12
-check_1_12="1.12 - Audit Docker files and directories - docker.service"
+check_num="1.12"
+check_desc="Audit Docker files and directories - docker.service"
 file="/usr/lib/systemd/system/docker.service"
 if [ -f "$file" ]; then
   command -v auditctl >/dev/null 2>&1
   if [ $? -eq 0 ]; then
     auditctl -l | grep $file >/dev/null 2>&1
     if [ $? -eq 0 ]; then
-      pass "$check_1_12"
+      pass "$check_num" "$check_desc"
     else
-      warn "$check_1_12"
+      warn "$check_num" "$check_desc"
     fi
   else
-    warn "1.12 - Failed to inspect: auditctl command not found."
+    warn "$check_num" "$check_desc" "Failed to inspect: auditctl command not found."
   fi
 else
-  info "$check_1_12"
-  info "     * File not found"
+  info "$check_num" "$check_desc" "File not found"
 fi
 
 # 1.13
-check_1_13="1.13 - Audit Docker files and directories - /var/run/docker.sock"
+check_num="1.13"
+check_desc="Audit Docker files and directories - /var/run/docker.sock"
 file="/var/run/docker.sock"
 if [ -e "$file" ]; then
   command -v auditctl >/dev/null 2>&1
   if [ $? -eq 0 ]; then
     auditctl -l | grep $file >/dev/null 2>&1
     if [ $? -eq 0 ]; then
-      pass "$check_1_13"
+      pass "$check_num" "$check_desc"
     else
-      warn "$check_1_13"
+      warn "$check_num" "$check_desc"
     fi
   else
-    warn "1.13 - Failed to inspect: auditctl command not found."
+    warn "$check_num" "$check_desc" "Failed to inspect: auditctl command not found."
   fi
 else
-  info "$check_1_13"
-  info "     * File not found"
+  info "$check_num" "$check_desc" "File not found"
 fi
 
 # 1.14
-check_1_14="1.14 - Audit Docker files and directories - /etc/sysconfig/docker"
+check_num="1.14"
+check_desc="Audit Docker files and directories - /etc/sysconfig/docker"
 file="/etc/sysconfig/docker"
 if [ -f "$file" ]; then
   command -v auditctl >/dev/null 2>&1
   if [ $? -eq 0 ]; then
     auditctl -l | grep $file >/dev/null 2>&1
     if [ $? -eq 0 ]; then
-      pass "$check_1_14"
+      pass "$check_num" "$check_desc"
     else
-      warn "$check_1_14"
+      warn "$check_num" "$check_desc"
     fi
   else
-    warn "1.14 - Failed to inspect: auditctl command not found."
+    warn "$check_num" "$check_desc" "Failed to inspect: auditctl command not found."
   fi
 else
-  info "$check_1_14"
-  info "     * File not found"
+  info "$check_num" "$check_desc" "File not found"
 fi
 
 # 1.15
-check_1_15="1.15 - Audit Docker files and directories - /etc/sysconfig/docker-network"
+check_num="1.15"
+check_desc="Audit Docker files and directories - /etc/sysconfig/docker-network"
 file="/etc/sysconfig/docker-network"
 if [ -f "$file" ]; then
   command -v auditctl >/dev/null 2>&1
   if [ $? -eq 0 ]; then
     auditctl -l | grep $file >/dev/null 2>&1
     if [ $? -eq 0 ]; then
-      pass "$check_1_15"
+      pass "$check_num" "$check_desc"
     else
-      warn "$check_1_15"
+      warn "$check_num" "$check_desc"
     fi
   else
-    warn "1.15 - Failed to inspect: auditctl command not found."
+    warn "$check_num" "$check_desc" "Failed to inspect: auditctl command not found."
   fi
 else
-  info "$check_1_15"
-  info "     * File not found"
+  info "$check_num" "$check_desc" "File not found"
 fi
 
 # 1.16
-check_1_16="1.16 - Audit Docker files and directories - /etc/sysconfig/docker-registry"
+check_num="1.16"
+check_desc="Audit Docker files and directories - /etc/sysconfig/docker-registry"
 file="/etc/sysconfig/docker-registry"
 if [ -f "$file" ]; then
   command -v auditctl >/dev/null 2>&1
   if [ $? -eq 0 ]; then
     auditctl -l | grep $file >/dev/null 2>&1
     if [ $? -eq 0 ]; then
-      pass "$check_1_16"
+      pass "$check_num" "$check_desc"
     else
-      warn "$check_1_16"
+      warn "$check_num" "$check_desc"
     fi
   else
-    warn "1.16 - Failed to inspect: auditctl command not found."
+    warn "$check_num" "$check_desc" "Failed to inspect: auditctl command not found."
   fi
 else
-  info "$check_1_16"
-  info "     * File not found"
+  info "$check_num" "$check_desc" "File not found"
 fi
 
 # 1.17
-check_1_17="1.17 - Audit Docker files and directories - /etc/sysconfig/docker-storage"
+check_num="1.17"
+check_desc="Audit Docker files and directories - /etc/sysconfig/docker-storage"
 file="/etc/sysconfig/docker-storage"
 if [ -f "$file" ]; then
   command -v auditctl >/dev/null 2>&1
   if [ $? -eq 0 ]; then
     auditctl -l | grep $file >/dev/null 2>&1
     if [ $? -eq 0 ]; then
-      pass "$check_1_17"
+      pass "$check_num" "$check_desc"
     else
-      warn "$check_1_17"
+      warn "$check_num" "$check_desc"
     fi
   else
     warn "1.17 - Failed to inspect: auditctl command not found."
   fi
 else
-  info "$check_1_17"
-  info "     * File not found"
+  info "$check_num" "$check_desc" "File not found"
 fi
 
 # 1.18
-check_1_18="1.18 - Audit Docker files and directories - /etc/default/docker"
+check_num="1.18"
+check_desc="Audit Docker files and directories - /etc/default/docker"
 file="/etc/default/docker"
 if [ -f "$file" ]; then
   command -v auditctl >/dev/null 2>&1
   if [ $? -eq 0 ]; then
     auditctl -l | grep $file >/dev/null 2>&1
     if [ $? -eq 0 ]; then
-      pass "$check_1_18"
+      pass "$check_num" "$check_desc"
     else
-      warn "$check_1_18"
+      warn "$check_num" "$check_desc"
     fi
   else
-    warn "1.18 - Failed to inspect: auditctl command not found."
+    warn "$check_num" "$check_desc" "Failed to inspect: auditctl command not found."
   fi
 else
-  info "$check_1_18"
-  info "     * File not found"
+  info "$check_num" "$check_desc" "File not found"
 fi
+
+# close section clause 
+section_end

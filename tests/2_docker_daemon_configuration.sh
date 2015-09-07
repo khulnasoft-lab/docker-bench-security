@@ -13,12 +13,13 @@ else
 fi
 
 # 2.2
-check_2_2="2.2  - Restrict network traffic between containers"
+check_num="2.2"
+check_desk="Restrict network traffic between containers"
 get_command_line_args docker | grep "icc=false" >/dev/null 2>&1 
 if [ $? -eq 0 ]; then
-  pass "$check_2_2"
+  pass "$check_num" "$check_desc"
 else
-  warn "$check_2_2"
+  warn "$check_num" "$check_desc"
 fi
 
 # 2.3
