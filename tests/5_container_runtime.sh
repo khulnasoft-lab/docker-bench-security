@@ -1,17 +1,25 @@
 #!/bin/sh
 
 logit "\n"
-info "5  - Container Runtime"
+
+section_num="5"
+section_desc="DocContainer Runtime"
+
+section_start "$section_num" "$section_desc"
+
 
 # If containers is empty, there are no running containers
 if [ -z "$containers" ]; then
-  info "     * No containers running, skipping Section 5"
+  check_num="5"
+  check_desc="Running containers" "No containers running, skipping Section 5"
+  info "$check_num" "$check_desc"
 else
   # Make the loop separator be a new-line in POSIX compliant fashion
   set -f; IFS=$'
 '
   # 5.1
-  check_5_1="5.1  - Verify AppArmor Profile, if applicable"
+  check_num="5.1"
+  check_desc="Verify AppArmor Profile, if applicable"
 
   fail=0
   for c in $containers; do
@@ -20,21 +28,21 @@ else
     if [ "$policy" = "AppArmorProfile=" -o "$policy" = "AppArmorProfile=[]" -o "$policy" = "AppArmorProfile=<no value>" ]; then
       # If it's the first container, fail the test
       if [ $fail -eq 0 ]; then
-        warn "$check_5_1"
-        warn "     * No AppArmorProfile Found: $c"
+        warn "$check_num" "$check_desc" "No AppArmorProfile Found: $c"
         fail=1
       else
-        warn "     * No AppArmorProfile Found: $c"
+        warn "$check_num" "$check_desc" "No AppArmorProfile Found: $c"
       fi
     fi
   done
   # We went through all the containers and found none without AppArmor
   if [ $fail -eq 0 ]; then
-      pass "$check_5_1"
+      pass "$check_num" "$check_desc"
   fi
 
   # 5.2
-  check_5_2="5.2  - Verify SELinux security options, if applicable"
+  check_num="5.2"
+  check_desc="Verify SELinux security options, if applicable"
 
   fail=0
   for c in $containers; do
@@ -43,21 +51,21 @@ else
     if [ "$policy" = "SecurityOpt=" -o "$policy" = "SecurityOpt=[]" -o "$policy" = "SecurityOpt=<no value>" ]; then
       # If it's the first container, fail the test
       if [ $fail -eq 0 ]; then
-        warn "$check_5_2"
-        warn "     * No SecurityOptions Found: $c"
+        warn "$check_num" "$check_desc" "No SecurityOptions Found: $c"
         fail=1
       else
-        warn "     * No SecurityOptions Found: $c"
+        warn "$check_num" "$check_desc" "No SecurityOptions Found: $c"
       fi
     fi
   done
   # We went through all the containers and found none without SELinux
   if [ $fail -eq 0 ]; then
-      pass "$check_5_2"
+      pass "$check_num" "$check_desc"
   fi
 
   # 5.3
-  check_5_3="5.3  - Verify that containers are running only a single main process"
+  check_num="5.3"
+  check_desc="Verify that containers are running only a single main process"
 
   fail=0
   printcheck=0
@@ -66,33 +74,33 @@ else
     if [ "$processes" -gt 1 ]; then
       # If it's the first container, fail the test
       if [ $fail -eq 0 ]; then
-        warn "$check_5_3"
-        warn "     * Too many proccesses running: $c"
+        warn "$check_num" "$check_desc" "Too many proccesses running: $c"
         fail=1
-	printcheck=1
+	      printcheck=1
       else
-        warn "     * Too many proccesses running: $c"
+        warn "$check_num" "$check_desc" "Too many proccesses running: $c"
       fi
     fi
 
     exec_check=$(docker exec "$c" ps -el 2>/dev/null)
     if [ $? -eq 255 ]; then
         if [ $printcheck -eq 0 ]; then
-          warn "$check_5_3"
-	  printcheck=1
+          warn "$check_num" "$check_desc"
+	        printcheck=1
         fi
-      warn "     * Docker exec fails: $c"
+      warn "$check_num" "$check_desc" "Docker exec fails: $c"
       fail=1
     fi
 
   done
   # We went through all the containers and found none with toom any processes
   if [ $fail -eq 0 ]; then
-      pass "$check_5_3"
+      pass "$check_num" "$check_desc"
   fi
 
   # 5.4
-  check_5_4="5.4  - Restrict Linux Kernel Capabilities within containers"
+  check_num="5.4"
+  check_desc="Restrict Linux Kernel Capabilities within containers"
 
   fail=0
   for c in $containers; do
@@ -101,21 +109,21 @@ else
     if [ "$caps" != 'CapAdd=' -a "$caps" != 'CapAdd=[]' -a "$caps" != 'CapAdd=<no value>' -a "$caps" != 'CapAdd=<nil>' ]; then
       # If it's the first container, fail the test
       if [ $fail -eq 0 ]; then
-        warn "$check_5_4"
-        warn "     * Capabilities added: $caps to $c"
+        warn "$check_num" "$check_desc" "Capabilities added: $caps to $c"
         fail=1
       else
-        warn "     * Capabilities added: $caps to $c"
+        warn "$check_num" "$check_desc" "Capabilities added: $caps to $c"
       fi
     fi
   done
   # We went through all the containers and found none with extra capabilities
   if [ $fail -eq 0 ]; then
-      pass "$check_5_4"
+      pass "$check_num" "$check_desc"
   fi
 
   # 5.5
-  check_5_5="5.5  - Do not use privileged containers"
+  check_num="5.5"
+  check_desc="Do not use privileged containers"
 
   fail=0
   for c in $containers; do
@@ -124,21 +132,21 @@ else
     if [ "$privileged" = "true" ]; then
       # If it's the first container, fail the test
       if [ $fail -eq 0 ]; then
-        warn "$check_5_5"
-        warn "     * Container running in Privileged mode: $c"
+        warn "$check_num" "$check_desc" "Container running in Privileged mode: $c"
         fail=1
       else
-        warn "     * Container running in Privileged mode: $c"
+        warn "$check_num" "$check_desc" "Container running in Privileged mode: $c"
       fi
     fi
   done
   # We went through all the containers and found no privileged containers
   if [ $fail -eq 0 ]; then
-      pass "$check_5_5"
+      pass "$check_num" "$check_desc"
   fi
 
   # 5.6
-  check_5_6="5.6  - Do not mount sensitive host system directories on containers"
+  check_num="5.6"
+  check_desc="Do not mount sensitive host system directories on containers"
 
   # List of sensitive directories to test for. Script uses new-lines as a separator.
   # Note the lack of identation. It needs it for the substring comparison.
@@ -159,22 +167,22 @@ else
       if [ $sensitive -eq 1 ]; then
         # If it's the first container, fail the test
         if [ $fail -eq 0 ]; then
-          warn "$check_5_6"
-          warn "     * Sensitive directory $v mounted in: $c"
+          warn "$check_num" "$check_desc" "Sensitive directory $v mounted in: $c"
           fail=1
         else
-          warn "     * Sensitive directory $v mounted in: $c"
+          warn "$check_num" "$check_desc" "Sensitive directory $v mounted in: $c"
         fi
       fi
     done
   done
   # We went through all the containers and found none with sensitive mounts
   if [ $fail -eq 0 ]; then
-      pass "$check_5_6"
+      pass "$check_num" "$check_desc"
   fi
 
   # 5.7
-  check_5_7="5.7  - Do not run ssh within containers"
+  check_num="5.7"
+  check_desc="Do not run ssh within containers"
 
   fail=0
   printcheck=0
@@ -184,33 +192,33 @@ else
     if [ "$processes" -ge 1 ]; then
       # If it's the first container, fail the test
       if [ $fail -eq 0 ]; then
-        warn "$check_5_7"
-        warn "     * Container running sshd: $c"
+        warn "$check_num" "$check_desc" "Container running sshd: $c"
         fail=1
-	printcheck=1
+	      printcheck=1
       else
-        warn "     * Container running sshd: $c"
+        "$check_num" "$check_desc" "Container running sshd: $c"
       fi
     fi
 
     exec_check=$(docker exec "$c" ps -el 2>/dev/null)
     if [ $? -eq 255 ]; then
         if [ $printcheck -eq 0 ]; then
-          warn "$check_5_7"
-	  printcheck=1
+          warn "$check_num" "$check_desc"
+	        printcheck=1
         fi
-      warn "     * Docker exec fails: $c"
+      warn "$check_num" "$check_desc" "Docker exec fails: $c"
       fail=1
     fi
 
   done
   # We went through all the containers and found none with sshd
   if [ $fail -eq 0 ]; then
-      pass "$check_5_7"
+      pass "$check_num" "$check_desc"
   fi
 
   # 5.8
-  check_5_8="5.8  - Do not map privileged ports within containers"
+  check_num="5.8"
+  check_desc="Do not map privileged ports within containers"
 
   fail=0
   for c in $containers; do
@@ -222,22 +230,22 @@ else
     if [ ! -z "$port" ] && [ "0$port" -lt 1024 ]; then
         # If it's the first container, fail the test
         if [ $fail -eq 0 ]; then
-          warn "$check_5_8"
-          warn "     * Privileged Port in use: $port in $c"
+          warn "$check_num" "$check_desc" "Privileged Port in use: $port in $c"
           fail=1
         else
-          warn "     * Privileged Port in use: $port in $c"
+          warn "$check_num" "$check_desc" "Privileged Port in use: $port in $c"
         fi
       fi
     done
   done
   # We went through all the containers and found no privileged ports
   if [ $fail -eq 0 ]; then
-      pass "$check_5_8"
+      pass "$check_num" "$check_desc"
   fi
 
   # 5.10
-  check_5_10="5.10 - Do not use host network mode on container"
+  check_num="5.10"
+  check_desc="Do not use host network mode on container"
 
   fail=0
   for c in $containers; do
@@ -246,21 +254,21 @@ else
     if [ "$mode" = "NetworkMode=host" ]; then
       # If it's the first container, fail the test
       if [ $fail -eq 0 ]; then
-        warn "$check_5_10"
-        warn "     * Container running with networking mode 'host': $c"
+        warn "$check_num" "$check_desc" "Container running with networking mode 'host': $c"
         fail=1
       else
-        warn "     * Container running with networking mode 'host': $c"
+        warn "$check_num" "$check_desc" "Container running with networking mode 'host': $c"
       fi
     fi
   done
   # We went through all the containers and found no Network Mode host
   if [ $fail -eq 0 ]; then
-      pass "$check_5_10"
+      pass "$check_num" "$check_desc"
   fi
 
   # 5.11
-  check_5_11="5.11 - Limit memory usage for container"
+  check_num="5.11"
+  check_desc="Limit memory usage for container"
 
   fail=0
   for c in $containers; do
@@ -269,21 +277,21 @@ else
     if [ "$memory" = "0" ]; then
       # If it's the first container, fail the test
       if [ $fail -eq 0 ]; then
-        warn "$check_5_11"
-        warn "     * Container running without memory restrictions: $c"
+        warn "$check_num" "$check_desc" "Container running without memory restrictions: $c"
         fail=1
       else
-        warn "     * Container running without memory restrictions: $c"
+        warn "$check_num" "$check_desc" "Container running without memory restrictions: $c"
       fi
     fi
   done
   # We went through all the containers and found no lack of Memory restrictions
   if [ $fail -eq 0 ]; then
-      pass "$check_5_11"
+      pass "$check_num" "$check_desc"
   fi
 
   # 5.12
-  check_5_12="5.12 - Set container CPU priority appropriately"
+  check_num="5.12"
+  check_desc="Set container CPU priority appropriately"
 
   fail=0
   for c in $containers; do
@@ -292,21 +300,21 @@ else
     if [ "$shares" = "0" ]; then
       # If it's the first container, fail the test
       if [ $fail -eq 0 ]; then
-        warn "$check_5_12"
-        warn "     * Container running without CPU restrictions: $c"
+        warn "$check_num" "$check_desc" "Container running without CPU restrictions: $c"
         fail=1
       else
-        warn "     * Container running without CPU restrictions: $c"
+        warn "$check_num" "$check_desc" "Container running without CPU restrictions: $c"
       fi
     fi
   done
   # We went through all the containers and found no lack of CPUShare restrictions
   if [ $fail -eq 0 ]; then
-      pass "$check_5_12"
+      pass "$check_num" "$check_desc"
   fi
 
   # 5.13
-  check_5_13="5.13 - Mount container's root filesystem as read only"
+  check_num="5.13"
+  check_desc="Mount container's root filesystem as read only"
 
   fail=0
   for c in $containers; do
@@ -315,21 +323,21 @@ else
     if [ "$read_status" = "false" ]; then
       # If it's the first container, fail the test
       if [ $fail -eq 0 ]; then
-        warn "$check_5_13"
-        warn "     * Container running with root FS mounted R/W: $c"
+        warn "$check_num" "$check_desc" "Container running with root FS mounted R/W: $c"
         fail=1
       else
-        warn "     * Container running with root FS mounted R/W: $c"
+        warn "$check_num" "$check_desc" "Container running with root FS mounted R/W: $c"
       fi
     fi
   done
   # We went through all the containers and found no R/W FS mounts
   if [ $fail -eq 0 ]; then
-      pass "$check_5_13"
+      pass "$check_num" "$check_desc"
   fi
 
   # 5.14
-  check_5_14="5.14 - Bind incoming container traffic to a specific host interface"
+  check_num="5.14"
+  check_desc="Bind incoming container traffic to a specific host interface"
 
   fail=0
   for c in $containers; do
@@ -337,22 +345,22 @@ else
       if [ "$ip" = "0.0.0.0" ]; then
         # If it's the first container, fail the test
         if [ $fail -eq 0 ]; then
-          warn "$check_5_14"
-          warn "     * Port being bound to wildcard IP: $ip in $c"
+          warn "$check_num" "$check_desc" "Port being bound to wildcard IP: $ip in $c"
           fail=1
         else
-          warn "     * Port being bound to wildcard IP: $ip in $c"
+          warn "$check_num" "$check_desc" "Port being bound to wildcard IP: $ip in $c"
         fi
       fi
     done
   done
   # We went through all the containers and found no ports bound to 0.0.0.0
   if [ $fail -eq 0 ]; then
-      pass "$check_5_14"
+      pass "$check_num" "$check_desc"
   fi
 
   # 5.15
-  check_5_15="5.15 - Do not set the 'on-failure' container restart policy to always"
+  check_num="5.15"
+  check_desc="Do not set the 'on-failure' container restart policy to always"
 
   fail=0
   for c in $containers; do
@@ -361,21 +369,21 @@ else
     if [ "$policy" = "RestartPolicyName=always" ]; then
       # If it's the first container, fail the test
       if [ $fail -eq 0 ]; then
-        warn "$check_5_15"
-        warn "     * Restart Policy set to always: $c"
+        warn "$check_num" "$check_desc" "Restart Policy set to always: $c"
         fail=1
       else
-        warn "     * Restart Policy set to always: $c"
+        warn "$check_num" "$check_desc" "Restart Policy set to always: $c"
       fi
     fi
   done
   # We went through all the containers and found none with restart policy always
   if [ $fail -eq 0 ]; then
-      pass "$check_5_15"
+      pass "$check_num" "$check_desc"
   fi
 
   # 5.16
-  check_5_16="5.16 - Do not share the host's process namespace"
+  check_5_16="5.16"
+  check_desc="Do not share the host's process namespace"
 
   fail=0
   for c in $containers; do
@@ -384,21 +392,21 @@ else
     if [ "$mode" = "PidMode=host" ]; then
       # If it's the first container, fail the test
       if [ $fail -eq 0 ]; then
-        warn "$check_5_16"
-        warn "     * Host PID namespace being shared with: $c"
+        warn "$check_num" "$check_desc" "Host PID namespace being shared with: $c"
         fail=1
       else
-        warn "     * Host PID namespace being shared with: $c"
+        warn "$check_num" "$check_desc" "Host PID namespace being shared with: $c"
       fi
     fi
   done
   # We went through all the containers and found none with PidMode as host
   if [ $fail -eq 0 ]; then
-      pass "$check_5_16"
+      pass "$check_num" "$check_desc"
   fi
 
   # 5.17
-  check_5_17="5.17 - Do not share the host's IPC namespace"
+  check_num="5.17"
+  check_desc="Do not share the host's IPC namespace"
 
   fail=0
   for c in $containers; do
@@ -407,17 +415,16 @@ else
     if [ "$mode" = "IpcMode=host" ]; then
       # If it's the first container, fail the test
       if [ $fail -eq 0 ]; then
-        warn "$check_5_17"
-        warn "     * Host IPC namespace being shared with: $c"
+        warn "$check_num" "$check_desc" "Host IPC namespace being shared with: $c"
         fail=1
       else
-        warn "     * Host IPC namespace being shared with: $c"
+        warn "$check_num" "$check_desc" "Host IPC namespace being shared with: $c"
       fi
     fi
   done
   # We went through all the containers and found none with IPCMode as host
   if [ $fail -eq 0 ]; then
-      pass "$check_5_17"
+      pass "$check_num" "$check_desc"
   fi
 
   # 5.18
@@ -430,21 +437,21 @@ else
     if [ "$devices" != "Devices=" -a "$devices" != "Devices=[]" -a "$devices" != "Devices=<no value>" ]; then
       # If it's the first container, fail the test
       if [ $fail -eq 0 ]; then
-        info "$check_5_18"
-        info "     * Container has devices exposed directly: $c"
+        info "$check_num" "$check_desc" "Container has devices exposed directly: $c"
         fail=1
       else
-        info "     * Container has devices exposed directly: $c"
+        info "$check_num" "$check_desc" "Container has devices exposed directly: $c"
       fi
     fi
   done
   # We went through all the containers and found none with devices
   if [ $fail -eq 0 ]; then
-      pass "$check_5_18"
+      pass "$check_num" "$check_desc"
   fi
 
   # 5.19
-  check_5_19="5.19 - Override default ulimit at runtime only if needed"
+  check_num="5.19"
+  check_desc="Override default ulimit at runtime only if needed"
 
   # List all the running containers, ouput their ID and host devices
   fail=0
@@ -454,16 +461,17 @@ else
     if [ "$ulimits" = "Ulimits=" -o "$ulimits" = "Ulimits=[]" -o "$ulimits" = "Ulimits=<no value>" ]; then
       # If it's the first container, fail the test
       if [ $fail -eq 0 ]; then
-        info "$check_5_19"
-        info "     * Container no default ulimit override: $c"
+        info "$check_num" "$check_desc" "Container no default ulimit override: $c"
         fail=1
       else
-        info "     * Container no default ulimit override: $c"
+        info "$check_num" "$check_desc" "Container no default ulimit override: $c"
       fi
     fi
   done
   # We went through all the containers and found none without Ulimits
   if [ $fail -eq 0 ]; then
-      pass "$check_5_19"
+      pass "$check_num" "$check_desc"
   fi
 fi
+
+section_end "$section_num" "$section_desc"

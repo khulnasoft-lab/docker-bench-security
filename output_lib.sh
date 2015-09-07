@@ -7,7 +7,9 @@ txtrst='\033[0m'
 first_element=false
 
 logit () {
-  printf "%b\n" "$1" | tee -a "$logger"
+  if [ "x$output" != "xJSON" ]; then
+    printf "%b\n" "$1" | tee -a "$logger"
+  fi
 }
 
 info () {
@@ -71,5 +73,7 @@ section_end() {
 }
 
 yell () {
-  printf "%b\n" "${bldylw}$1${txtrst}\n"
+  if [ "x$output" != "xJSON" ]; then
+    printf "%b\n" "${bldylw}$1${txtrst}\n"
+  fi
 }

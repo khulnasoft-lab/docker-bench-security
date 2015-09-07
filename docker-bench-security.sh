@@ -73,7 +73,7 @@ yell "# ------------------------------------------------------------------------
 # Warn if not root
 ID=$(id -u)
 if [ "x$ID" != "x0" ]; then
-    warn "Some tests might require root to run"
+    warn "0", "General", "Some tests might require root to run"
     sleep 3
 fi
 

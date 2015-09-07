@@ -1,15 +1,19 @@
 #!/bin/sh
 
 logit "\n"
-info "6  - Docker Security Operations"
+section_num="6"
+section_desc="Docker Security Operations"
+
+
+section_start "$section_num" "$section_desc"
 
 # 6.5
-check_6_5="6.5 - Use a centralized and remote log collection service"
+check_num="6.5"
+check_desc="Use a centralized and remote log collection service"
 
 # If containers is empty, there are no running containers
 if [ -z "$containers" ]; then
-  info "$check_6_5"
-  info "     * No containers running"
+  info "$check_num" "$check_desc" "No containers running"
 else
   fail=0
   set -f; IFS=$'
@@ -20,11 +24,10 @@ else
     if [ "$volumes" = "map[]" ]; then
       # If it's the first container, fail the test
       if [ $fail -eq 0 ]; then
-        info "$check_6_5"
-        info "     * Container has no volumes, ensure centralized logging is enabled : $c"
+        info "$check_num" "$check_desc" "Container has no volumes, ensure centralized logging is enabled : $c"
         fail=1
       else
-        info "     * Container has no volumes, ensure centralized logging is enabled : $c"
+        info "$check_num" "$check_desc" "Container has no volumes, ensure centralized logging is enabled : $c"
       fi
     fi
   done
@@ -35,7 +38,8 @@ fi
 set +f; unset IFS
 
 # 6.6
-check_6_6="6.6 - Avoid image sprawl"
+check_num="6.6"
+check_desc="Avoid image sprawl"
 images=$(docker images -q | sort -u | wc -l | awk '{print $1}')
 active_images=0
 
@@ -46,26 +50,26 @@ for c in $(docker inspect -f "{{.Image}}" $(docker ps -qa)); do
 done
 
 if [ "$images" -gt 100 ]; then
-  warn "$check_6_6"
-  warn "     * There are currently: $images images"
+  warn "$check_num" "$check_desc" "There are currently: $images images"
 else
-  info "$check_6_6"
-  info "     * There are currently: $images images"
+  info "$check_num" "$check_desc" "There are currently: $images images"
 fi
 
 if [ "$active_images" -lt "$((images / 2))" ]; then
-  warn "     * Only $active_images out of $images are in use"
+  warn "$check_num" "$check_desc" "Only $active_images out of $images are in use"
 fi
 
 # 6.7
-check_6_7="6.7 - Avoid container sprawl"
+check_num="6.7"
+check_desc="Avoid container sprawl"
 total_containers=$(docker info 2>/dev/null | grep "Containers" | awk '{print $2}')
 running_containers=$(docker ps -q | wc -l | awk '{print $1}')
 diff="$((total_containers - running_containers))"
 if [ "$diff" -gt 25 ]; then
-  warn "$check_6_7"
-  warn "     * There are currently a total of $total_containers containers, with only $running_containers of them currently running"
+  warn "$check_num" "$check_desc" "There are currently a total of $total_containers containers, with only $running_containers of them currently running"
 else
-  info "$check_6_7"
-  info "     * There are currently a total of $total_containers containers, with $running_containers of them currently running"
+  info "$check_num" "$check_desc" "There are currently a total of $total_containers containers, with $running_containers of them currently running"
 fi
+
+
+section_end "$section_num" "$section_desc"

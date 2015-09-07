@@ -3,6 +3,7 @@
 logit ""
 section_num="1"
 section_desc="Host Configuration"
+
 section_start "$section_num" "$section_desc"
 
 # 1.1
@@ -278,5 +279,5 @@ else
   info "$check_num" "$check_desc" "File not found"
 fi
 
-# close section clause 
-section_end
+# close section  
+section_end "$section_num" "$section_desc"
