@@ -11,8 +11,8 @@ section_start "$section_num" "$section_desc"
 # If containers is empty, there are no running containers
 if [ -z "$containers" ]; then
   check_num="5"
-  check_desc="Running containers" "No containers running, skipping Section 5"
-  info "$check_num" "$check_desc"
+  check_desc="Running containers" 
+  info "$check_num" "$check_desc" "No containers running, skipping Section 5"
 else
   # Make the loop separator be a new-line in POSIX compliant fashion
   set -f; IFS=$'

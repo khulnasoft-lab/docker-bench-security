@@ -70,10 +70,11 @@ yell "# ------------------------------------------------------------------------
 # https://benchmarks.cisecurity.org/tools2/docker/CIS_Docker_1.6_Benchmark_v1.0.0.pdf
 # ------------------------------------------------------------------------------"
 
-print_start_dockerbench
 
 # Load all the tests from tests/ and run them
 main () {
+  print_start_dockerbench
+  
   # List all running containers
   containers=$(docker ps | sed '1d' | awk '{print $NF}')
   # If there is a container with label docker_bench_security, memorize it:
@@ -90,19 +91,23 @@ main () {
   # Warn if not root
   ID=$(id -u)
   if [ "x$ID" != "x0" ]; then
-    warn "0" "Test run by root" "Some tests might require root to run"
+    section_start "0" "Prerequisite"
+    warn "0.1" "Test run by root" "Some tests might require root to run"
+    section_end "0" "Prerequisite"
     sleep 3
   fi
   
-  # run all tests under the ./test/ directory
+  # run all tests under the ./tests/ directory
   for test in tests/*.sh
   do
      . ./"$test"
   done
   
   print_end_tests
+
+  print_end_dockerbench
+
 }
 
-print_end_dockerbench
 
 main "$@"

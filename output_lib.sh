@@ -96,7 +96,7 @@ print_start_dockerbench() {
 
 print_end_dockerbench() {
  if [ "x$output" = "xJSON" ]; then
-    printf "}"
+    printf "}\n"
   fi
 }
 
