@@ -5,6 +5,7 @@ bldblu='\033[1;34m'
 bldylw='\033[1;33m' # Yellow
 txtrst='\033[0m'
 first_element=false
+section_seperator=""
 
 logit () {
   if [ "x$output" != "xJSON" ]; then
@@ -59,8 +60,9 @@ warn () {
 
 section_start() {
   if [ "x$output" = "xJSON" ]; then
-    printf "{\"section\":\"$1\", \"desc\": \"$2\", \"results\":["
+    printf "${section_seperator}{\"section\":\"$1\", \"desc\": \"$2\", \"results\":["
     first_element=true
+    section_seperator=","
   else
     printf "%b\n" "${bldblu}[INFO]${txtrst} $1 - $2" | tee -a "$logger"
   fi
@@ -69,6 +71,32 @@ section_start() {
 section_end() {
   if [ "x$output" = "xJSON" ]; then
     printf "]}"
+  fi
+}
+
+print_start_tests() {
+  if [ "x$output" = "xJSON" ]; then
+    printf ", \"tests\":["
+  fi
+}
+
+print_end_tests() {
+  if [ "x$output" = "xJSON" ]; then
+    printf "]"
+  fi
+}
+
+print_start_dockerbench() {
+  if [ "x$output" = "xJSON" ]; then
+    printf "{\"host\":\"$(hostname)\", \"date\":\"$(date)\""
+  else
+    logit "Initializing $(date)\n"
+  fi
+}
+
+print_end_dockerbench() {
+ if [ "x$output" = "xJSON" ]; then
+    printf "}"
   fi
 }
 
