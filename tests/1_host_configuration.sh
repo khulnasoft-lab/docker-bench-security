@@ -60,7 +60,7 @@ check_num="1.7"
 check_desc="Only allow trusted users to control Docker daemon"
 docker_users=$(grep docker /etc/group)
 for u in $docker_users; do
-  user_list=$user_list $u
+  user_list="$user_list $u"
 done
 info "$check_num" "$check_desc" "$user_list"
 
