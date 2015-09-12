@@ -3,7 +3,7 @@
 logit "\n"
 
 section_num="5"
-section_desc="DocContainer Runtime"
+section_desc="Container Runtime"
 
 section_start "$section_num" "$section_desc"
 
