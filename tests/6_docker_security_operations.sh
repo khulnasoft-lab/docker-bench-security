@@ -1,60 +1,75 @@
-#!/bin/bash
+#!/bin/sh
 
-check_6() {
-  logit ""
-  local id="6"
-  local desc="Docker Security Operations"
-  checkHeader="$id - $desc"
-  info "$checkHeader"
-  startsectionjson "$id" "$desc"
-}
+logit "\n"
+section_num="6"
+section_desc="Docker Security Operations"
 
-check_6_1() {
-  local id="6.1"
-  local desc="Ensure that image sprawl is avoided (Manual)"
-  local remediation="You should keep only the images that you actually need and establish a workflow to remove old or stale images from the host. Additionally, you should use features such as pull-by-digest to get specific images from the registry."
-  local remediationImpact="docker system prune -a removes all exited containers as well as all images and volumes that are not referenced by running containers, including for UCP and DTR."
-  local check="$id - $desc"
-  starttestjson "$id" "$desc"
 
-  images=$(docker images -q | sort -u | wc -l | awk '{print $1}')
-  active_images=0
+section_start "$section_num" "$section_desc"
 
-  for c in $(docker inspect --format "{{.Image}}" $(docker ps -qa) 2>/dev/null); do
-    if docker images --no-trunc -a | grep "$c" > /dev/null ; then
-      active_images=$(( active_images += 1 ))
+# 6.5
+check_num="6.5"
+check_desc="Use a centralized and remote log collection service"
+
+# If containers is empty, there are no running containers
+if [ -z "$containers" ]; then
+  info "$check_num" "$check_desc" "No containers running"
+else
+  fail=0
+  set -f; IFS=$'
+'
+  for c in $containers; do
+    volumes=$(docker inspect --format '{{ .Volumes }}' "$c")
+
+    if [ "$volumes" = "map[]" ]; then
+      # If it's the first container, fail the test
+      if [ $fail -eq 0 ]; then
+        info "$check_num" "$check_desc" "Container has no volumes, ensure centralized logging is enabled : $c"
+        fail=1
+      else
+        info "$check_num" "$check_desc" "Container has no volumes, ensure centralized logging is enabled : $c"
+      fi
     fi
   done
+  # Only alert if there are no volumes. If there are volumes, can't know if they
+  # are used for logs
+fi
+# Make the loop separator go back to space
+set +f; unset IFS
 
-  info -c "$check"
-  info "     * There are currently: $images images"
+# 6.6
+check_num="6.6"
+check_desc="Avoid image sprawl"
+images=$(docker images -q | sort -u | wc -l | awk '{print $1}')
+active_images=0
 
-  if [ "$active_images" -lt "$((images / 2))" ]; then
-    info "     * Only $active_images out of $images are in use"
+for c in $(docker inspect -f "{{.Image}}" $(docker ps -qa)); do
+  if docker images --no-trunc -a | grep "$c" > /dev/null ; then
+    active_images=$(( active_images += 1 ))
   fi
-  logcheckresult "INFO" "$active_images active/$images in use"
-}
+done
 
-check_6_2() {
-  local id="6.2"
-  local desc="Ensure that container sprawl is avoided (Manual)"
-  local remediation="You should periodically check your container inventory on each host and clean up containers which are not in active use with the command: docker container prune"
-  local remediationImpact="You should retain containers that are actively in use, and delete ones which are no longer needed."
-  local check="$id - $desc"
-  starttestjson "$id" "$desc"
+if [ "$images" -gt 100 ]; then
+  warn "$check_num" "$check_desc" "There are currently: $images images"
+else
+  info "$check_num" "$check_desc" "There are currently: $images images"
+fi
 
-  total_containers=$(docker info 2>/dev/null | grep "Containers" | awk '{print $2}')
-  running_containers=$(docker ps -q | wc -l | awk '{print $1}')
-  diff="$((total_containers - running_containers))"
-  info -c "$check"
-  if [ "$diff" -gt 25 ]; then
-    info "     * There are currently a total of $total_containers containers, with only $running_containers of them currently running"
-  else
-    info "     * There are currently a total of $total_containers containers, with $running_containers of them currently running"
-  fi
-  logcheckresult "INFO" "$total_containers total/$running_containers running"
-}
+if [ "$active_images" -lt "$((images / 2))" ]; then
+  warn "$check_num" "$check_desc" "Only $active_images out of $images are in use"
+fi
 
-check_6_end() {
-  endsectionjson
-}
+# 6.7
+check_num="6.7"
+check_desc="Avoid container sprawl"
+total_containers=$(docker info 2>/dev/null | grep "Containers" | awk '{print $2}')
+running_containers=$(docker ps -q | wc -l | awk '{print $1}')
+diff="$((total_containers - running_containers))"
+if [ "$diff" -gt 25 ]; then
+  warn "$check_num" "$check_desc" "There are currently a total of $total_containers containers, with only $running_containers of them currently running"
+else
+  info "$check_num" "$check_desc" "There are currently a total of $total_containers containers, with $running_containers of them currently running"
+fi
+
+
+section_end "$section_num" "$section_desc"
